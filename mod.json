@@ -1,0 +1,17 @@
+{
+	"geode": "5.7.1",
+	"gd": {
+		"win": "2.2081",
+		"android": "2.2081",
+		"mac": "2.2081",
+		"ios": "2.2081"
+	},
+	"id": "silentthundr.runs-tracker",
+	"name": "Runs Tracker",
+	"version": "1.0.0",
+	"developer": "SilentThundr",
+	"description": "Automatically records your runs in Normal and Practice mode, calculating the optimal progression segments. Full support for the level editor.",
+	"dependencies": {
+		"geode.node-ids": ">=1.23.3"
+	}
+}
