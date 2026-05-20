@@ -62,7 +62,6 @@ void saveRunsToDisk() {
     std::ofstream file("runs_data.txt");
     if (file.is_open()) {
         for (auto const& [key, runs] : g_levelRuns) {
-            // On utilise | pour séparer le nom (qui peut contenir des espaces) des runs
             file << key << "|";
             for (const auto& r : runs) {
                 file << r.start << "," << r.end << " ";
@@ -81,7 +80,6 @@ void loadRunsFromDisk() {
     while (std::getline(file, line)) {
         size_t sep = line.find('|');
         if (sep != std::string::npos) {
-            // NOUVEAU FORMAT : Gère les noms de niveaux avec des espaces
             std::string key = line.substr(0, sep);
             std::string runsPart = line.substr(sep + 1);
             std::stringstream ss(runsPart);
@@ -96,7 +94,6 @@ void loadRunsFromDisk() {
             }
         }
         else {
-            // ANCIEN FORMAT : Rétrocompatibilité pour ne pas perdre tes anciennes stats online
             std::stringstream ss(line);
             std::string key;
             if (!(ss >> key)) continue;
