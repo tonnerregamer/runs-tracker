@@ -38,9 +38,6 @@ float getAbsolutePercent(PlayLayer* layer) {
     return std::clamp(percent, 0.0f, 100.0f);
 }
 
-// =======================================================
-// SAVING AND LOADING
-// =======================================================
 void saveLinksToDisk() {
     std::ofstream file("links.txt");
     for (auto const& [id, name] : g_levelLinks) {
@@ -65,7 +62,8 @@ void saveRunsToDisk() {
     std::ofstream file("runs_data.txt");
     if (file.is_open()) {
         for (auto const& [key, runs] : g_levelRuns) {
-            file << key << " ";
+            // On utilise | pour séparer le nom (qui peut contenir des espaces) des runs
+            file << key << "|";
             for (const auto& r : runs) {
                 file << r.start << "," << r.end << " ";
             }
@@ -81,23 +79,41 @@ void loadRunsFromDisk() {
 
     std::string line;
     while (std::getline(file, line)) {
-        std::stringstream ss(line);
-        std::string key;
-        if (!(ss >> key)) continue;
+        size_t sep = line.find('|');
+        if (sep != std::string::npos) {
+            // NOUVEAU FORMAT : Gère les noms de niveaux avec des espaces
+            std::string key = line.substr(0, sep);
+            std::string runsPart = line.substr(sep + 1);
+            std::stringstream ss(runsPart);
+            std::string runStr;
+            while (ss >> runStr) {
+                size_t commaPos = runStr.find(',');
+                if (commaPos != std::string::npos) {
+                    float s = std::stof(runStr.substr(0, commaPos));
+                    float e = std::stof(runStr.substr(commaPos + 1));
+                    g_levelRuns[key].push_back({ s, e });
+                }
+            }
+        }
+        else {
+            // ANCIEN FORMAT : Rétrocompatibilité pour ne pas perdre tes anciennes stats online
+            std::stringstream ss(line);
+            std::string key;
+            if (!(ss >> key)) continue;
 
-        std::string runStr;
-        while (ss >> runStr) {
-            size_t commaPos = runStr.find(',');
-            if (commaPos != std::string::npos) {
-                float s = std::stof(runStr.substr(0, commaPos));
-                float e = std::stof(runStr.substr(commaPos + 1));
-                g_levelRuns[key].push_back({ s, e });
+            std::string runStr;
+            while (ss >> runStr) {
+                size_t commaPos = runStr.find(',');
+                if (commaPos != std::string::npos) {
+                    float s = std::stof(runStr.substr(0, commaPos));
+                    float e = std::stof(runStr.substr(commaPos + 1));
+                    g_levelRuns[key].push_back({ s, e });
+                }
             }
         }
     }
     file.close();
 }
-
 // =======================================================
 // 1. LOCAL LEVEL CHOICE WINDOW (LINK)
 // =======================================================
