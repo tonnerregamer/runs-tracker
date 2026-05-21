@@ -6,8 +6,8 @@
 		"mac": "2.2081",
 		"ios": "2.2081"
 	},
-	"id": "silentthundr.runs-tracker",
-	"name": "Run Tracker",
+	"id": "silentthundr.run-tracker",
+	"name": "Runs Tracker",
 	"version": "1.0.1",
 	"developer": "SilentThundr",
 	"description": "Tracks Normal and Practice runs, calculating the optimal segment path to complete the level. Features absolute percentage tracking and local editor level merging.",
