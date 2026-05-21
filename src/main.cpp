@@ -11,27 +11,19 @@
 
 using namespace geode::prelude;
 
-// =======================================================
-// STRUCTURES AND DATA
-// =======================================================
 struct Run {
     float start;
     float end;
 };
 
-// g_levelLinks : Online_ID -> Editor_Name
 std::map<int, std::string> g_levelLinks;
-
-// g_levelRuns : ID_or_Name -> List_of_Runs
 std::map<std::string, std::vector<Run>> g_levelRuns;
 
-// Get the correct save key (ID if online, Name if editor)
 std::string getLevelKey(GJGameLevel* level) {
     if (level->m_levelID.value() > 0) return std::to_string(level->m_levelID.value());
     return std::string(level->m_levelName);
 }
 
-// Mathematical function for ABSOLUTE PERCENTAGE (Fixes Start Pos everywhere!)
 float getAbsolutePercent(PlayLayer* layer) {
     if (!layer || layer->m_levelLength == 0.f) return 0.0f;
     float percent = (layer->m_player1->getPositionX() / layer->m_levelLength) * 100.0f;
@@ -111,16 +103,14 @@ void loadRunsFromDisk() {
     }
     file.close();
 }
-// =======================================================
-// 1. LOCAL LEVEL CHOICE WINDOW (LINK)
-// =======================================================
+
 class LinkPopup : public CCLayerColor {
 protected:
     GJGameLevel* m_onlineLevel;
     CCArray* m_localLevels;
 
     int m_currentPage = 0;
-    int m_itemsPerPage = 6; // <-- 6 Levels per page to fit perfectly
+    int m_itemsPerPage = 6;
 
     CCMenu* m_itemsMenu;
     CCLabelBMFont* m_pageLabel;
@@ -139,30 +129,25 @@ protected:
         auto mainLayer = CCLayer::create();
         this->addChild(mainLayer);
 
-        // Background (Standard GD Size: 260 height)
         auto bg = CCScale9Sprite::create("GJ_square01.png");
         bg->setContentSize({ 340.f, 260.f });
         bg->setPosition(winSize.width / 2, winSize.height / 2);
         mainLayer->addChild(bg);
 
-        // Title
         auto title = CCLabelBMFont::create("LINK LEVEL", "goldFont.fnt");
         title->setPosition(winSize.width / 2, winSize.height / 2 + 110.f);
         title->setScale(0.7f);
         mainLayer->addChild(title);
 
-        // Central Menu
         m_itemsMenu = CCMenu::create();
         m_itemsMenu->setPosition(winSize.width / 2, winSize.height / 2 + 10.f);
         mainLayer->addChild(m_itemsMenu);
 
-        // Pagination Label
         m_pageLabel = CCLabelBMFont::create("Page 1/1", "chatFont.fnt");
         m_pageLabel->setPosition(winSize.width / 2, winSize.height / 2 - 85.f);
         m_pageLabel->setScale(0.5f);
         mainLayer->addChild(m_pageLabel);
 
-        // Navigation Arrows
         auto prevSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
         m_prevBtn = CCMenuItemSpriteExtra::create(prevSprite, this, menu_selector(LinkPopup::onPrev));
         m_prevBtn->setPosition(winSize.width / 2 - 190.f, winSize.height / 2 + 10.f);
@@ -178,7 +163,6 @@ protected:
         navMenu->addChild(m_nextBtn);
         mainLayer->addChild(navMenu);
 
-        // Close Button
         auto closeSprite = ButtonSprite::create("CANCEL", "goldFont.fnt", "GJ_button_06.png", 0.7f);
         auto closeBtn = CCMenuItemSpriteExtra::create(closeSprite, this, menu_selector(LinkPopup::onClose));
         auto closeMenu = CCMenu::create();
@@ -219,7 +203,6 @@ protected:
             std::string lvlName = level->m_levelName;
             if (lvlName.empty()) lvlName = "Unnamed";
 
-            // Level Row
             auto row = CCNode::create();
             row->setContentSize({ 280.f, 24.f });
 
@@ -275,9 +258,6 @@ public:
     bool ccTouchBegan(CCTouch*, CCEvent*) override { return true; }
 };
 
-// =======================================================
-// 2. STATISTICS WINDOW (RUNS)
-// =======================================================
 class RunsPopup : public CCLayerColor {
 protected:
     GJGameLevel* m_level;
@@ -346,7 +326,6 @@ protected:
         auto closeBtn = CCMenuItemSpriteExtra::create(ButtonSprite::create("OK", "goldFont.fnt", "GJ_button_02.png", 0.6f), this, menu_selector(RunsPopup::onClose));
         menu->addChild(closeBtn);
 
-        // Link or Unlink button (Only for Online levels)
         if (m_level->m_levelID.value() > 0) {
             bool isLinked = g_levelLinks.count(m_level->m_levelID.value()) > 0;
             auto linkSprite = ButtonSprite::create(isLinked ? "Unlink" : "Link", "goldFont.fnt", isLinked ? "GJ_button_06.png" : "GJ_button_01.png", 0.6f);
@@ -395,9 +374,6 @@ public:
     bool ccTouchBegan(CCTouch*, CCEvent*) override { return true; }
 };
 
-// =======================================================
-// 3. GLOBAL LOGIC TO GENERATE STATS
-// =======================================================
 void showRunsMenu(GJGameLevel* level) {
     std::string currentKey = getLevelKey(level);
     std::vector<Run> allRuns;
@@ -406,7 +382,6 @@ void showRunsMenu(GJGameLevel* level) {
         allRuns = g_levelRuns[currentKey];
     }
 
-    // Merge if link exists
     if (level->m_levelID.value() > 0) {
         int onlineID = level->m_levelID.value();
         if (g_levelLinks.count(onlineID)) {
@@ -462,9 +437,6 @@ void showRunsMenu(GJGameLevel* level) {
     CCDirector::sharedDirector()->getRunningScene()->addChild(popup, 100);
 }
 
-// =======================================================
-// 4. THE TRACKER (GAME)
-// =======================================================
 class $modify(MyPlayLayer, PlayLayer) {
     struct Fields { float m_startPercent = 0.0f; };
 
@@ -472,7 +444,6 @@ class $modify(MyPlayLayer, PlayLayer) {
         PlayLayer::resetLevel();
         if (this->m_level->isPlatformer()) return;
 
-        // Exact Start Pos tracking
         m_fields->m_startPercent = getAbsolutePercent(this);
     }
 
@@ -480,7 +451,6 @@ class $modify(MyPlayLayer, PlayLayer) {
         PlayLayer::destroyPlayer(player, object);
         if (this->m_level->isPlatformer()) return;
 
-        // Exact End tracking
         float end = getAbsolutePercent(this);
         float start = m_fields->m_startPercent;
 
@@ -501,9 +471,6 @@ class $modify(MyPlayLayer, PlayLayer) {
     }
 };
 
-// =======================================================
-// 5. BUTTON IN ONLINE MENU
-// =======================================================
 class $modify(MyLevelInfoLayer, LevelInfoLayer) {
     bool init(GJGameLevel * level, bool challenge) {
         if (!LevelInfoLayer::init(level, challenge)) return false;
@@ -525,9 +492,6 @@ class $modify(MyLevelInfoLayer, LevelInfoLayer) {
     }
 };
 
-// =======================================================
-// 6. BUTTON IN LOCAL MENU (EDITOR)
-// =======================================================
 class $modify(MyEditLevelLayer, EditLevelLayer) {
     struct Fields { GJGameLevel* m_level; };
 
@@ -554,9 +518,6 @@ class $modify(MyEditLevelLayer, EditLevelLayer) {
     }
 };
 
-// =======================================================
-// INITIALIZATION
-// =======================================================
 $execute{
     loadRunsFromDisk();
     loadLinksFromDisk();
