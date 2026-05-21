@@ -37,18 +37,19 @@ protected:
         }
 
         auto listSize = CCSize(280.f, 140.f);
+        auto center = CCPoint(win.width / 2, win.height / 2);
         float yOffset = showTotal ? 0.f : 20.f;
 
         auto scrollBg = CCScale9Sprite::create("square02_small.png");
         scrollBg->setContentSize(listSize);
         scrollBg->setOpacity(100);
-        scrollBg->setPosition(0.f, -10.f + yOffset);
-        container->addChild(scrollBg);
+        scrollBg->setPosition(center.x, center.y - 10.f + yOffset);
+        this->addChild(scrollBg);
 
         auto scroll = ScrollLayer::create(listSize);
-        scroll->setPosition(-140.f, -70.f - 10.f + yOffset);
+        scroll->setPosition(center.x - listSize.width / 2, center.y - listSize.height / 2 - 10.f + yOffset);
         scroll->setTouchPriority(-501);
-        container->addChild(scroll);
+        this->addChild(scroll);
 
         float totHeight = rns.size() * 25.f;
         if (totHeight < listSize.height) totHeight = listSize.height;
@@ -69,11 +70,9 @@ protected:
 
         if (!m_buttonMenu) {
             m_buttonMenu = CCMenu::create();
-            container->addChild(m_buttonMenu);
+            this->addChild(m_buttonMenu);
         }
         else {
-            m_buttonMenu->removeFromParent();
-            container->addChild(m_buttonMenu);
             m_buttonMenu->removeAllChildrenWithCleanup(true);
         }
 
@@ -89,10 +88,13 @@ protected:
             m_buttonMenu->alignItemsHorizontallyWithPadding(15.f);
         }
 
-        m_buttonMenu->setPosition(0.f, -95.f);
+        m_buttonMenu->setPosition(win.width / 2, win.height / 2 - 95.f);
 
         container->setScale(0.1f);
         container->runAction(CCEaseElasticOut::create(CCScaleTo::create(0.4f, 1.0f), 0.5f));
+
+        m_buttonMenu->setScale(0.1f);
+        m_buttonMenu->runAction(CCEaseElasticOut::create(CCScaleTo::create(0.4f, 1.0f), 0.5f));
         return true;
     }
 
