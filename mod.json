@@ -8,7 +8,7 @@
 	},
 	"id": "silentthundr.runs-tracker",
 	"name": "Runs Tracker",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"developer": "SilentThundr",
 	"description": "Tracks Normal and Practice runs, calculating the optimal segment path to complete the level. Features absolute percentage tracking and local editor level merging.",
 	"dependencies": {
