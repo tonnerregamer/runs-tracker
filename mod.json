@@ -10,7 +10,7 @@
 	"name": "Runs Tracker",
 	"version": "1.0.0",
 	"developer": "SilentThundr",
-	"description": "Automatically records your runs in Normal and Practice mode, calculating the optimal progression segments. Full support for the level editor.",
+	"description": "Tracks Normal and Practice runs, calculating the optimal segment path to complete the level. Features absolute percentage tracking and local editor level merging.",
 	"dependencies": {
 		"geode.node-ids": ">=1.23.3"
 	}
