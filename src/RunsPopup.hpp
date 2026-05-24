@@ -2,6 +2,7 @@
 #include <Geode/Geode.hpp>
 #include "Tracker.hpp"
 #include "LinkPopup.hpp"
+#include <thread>
 
 using namespace geode::prelude;
 
@@ -173,7 +174,7 @@ inline void showRunsMenu(GJGameLevel* lvl) {
         if (all[i].start > tgt) tgt = all[i].start;
         float maxEnd = tgt;
         Run bestRun = { -1.0f, -1.0f };
-        while (i < allRuns.size() && all[i].start <= tgt) { // Correction de sécurité : all au lieu de allRuns
+        while (i < all.size() && all[i].start <= tgt) {
             if (all[i].end > maxEnd) {
                 maxEnd = all[i].end;
                 bestRun = all[i];
@@ -198,31 +199,50 @@ inline void checkUpdates(GJGameLevel* lvl) {
         return;
     }
 
-    geode::utils::web::fetch("https://raw.githubusercontent.com/tonnerregamer/runs-tracker/main/version.txt")
-        .then([lvl](std::string const& data) {
+    std::thread([lvl]() {
         checked = true;
-        std::string latest = data;
-        latest.erase(std::remove_if(latest.begin(), latest.end(), ::isspace), latest.end());
 
-        std::string current = Mod::get()->getVersion().toString();
+        auto response = web::WebRequest().getSync("https://raw.githubusercontent.com/tonnerregamer/runs-tracker/main/version.txt");
 
-        if (latest > current) {
-            geode::createQuickPopup(
-                "Update Available",
-                "A newer version of Runs Tracker is available. Would you like to open the download page?",
-                "No", "Yes",
-                [](auto, bool btn2) {
-                    if (btn2) {
-                        geode::utils::web::openLinkInBrowser("https://github.com/tonnerregamer/runs-tracker/releases");
+        Loader::get()->queueInMainThread([lvl, response]() {
+            if (response.ok()) {
+                auto resStr = response.string();
+                if (resStr) {
+                    std::string latest = resStr.unwrapOr("");
+                    latest.erase(std::remove_if(latest.begin(), latest.end(), ::isspace), latest.end());
+
+                    auto latestRes = geode::VersionInfo::parse(latest);
+                    if (latestRes) {
+                        auto latestVer = latestRes.unwrap();
+                        auto currentVer = Mod::get()->getVersion();
+
+                        if (semverCompare(currentVer, latestVer)) {
+                            geode::createQuickPopup(
+                                "Update Available",
+                                "A newer version of Runs Tracker is available. Would you like to open the download page?",
+                                "No", "Yes",
+                                [](auto, bool btn2) {
+                                    if (btn2) {
+                                        geode::utils::web::openLinkInBrowser("https://github.com/tonnerregamer/runs-tracker/releases");
+                                    }
+                                }
+                            );
+                        }
+                        else {
+                            showRunsMenu(lvl);
+                        }
+                    }
+                    else {
+                        showRunsMenu(lvl);
                     }
                 }
-            );
-        }
-        else {
-            showRunsMenu(lvl);
-        }
-            })
-        .expect([lvl](std::string const& error) {
-        showRunsMenu(lvl);
+                else {
+                    showRunsMenu(lvl);
+                }
+            }
+            else {
+                showRunsMenu(lvl);
+            }
             });
+        }).detach();
 }
