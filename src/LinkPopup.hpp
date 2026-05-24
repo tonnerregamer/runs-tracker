@@ -103,8 +103,16 @@ protected:
             std::string name = level->m_levelName;
             if (name.empty()) name = "Unnamed";
 
-            auto rowSpr = ButtonSprite::create(name.c_str(), 240, true, "chatFont.fnt", "square02_small.png", 24.f, 0.55f);
-            auto rowBtn = CCMenuItemSpriteExtra::create(rowSpr, this, menu_selector(LinkPopup::onSelectLevel));
+            auto rowBg = CCScale9Sprite::create("square02_small.png");
+            rowBg->setContentSize({ 280.f, 24.f });
+            rowBg->setOpacity(150);
+
+            auto lbl = CCLabelBMFont::create(name.c_str(), "chatFont.fnt");
+            lbl->setScale(0.55f);
+            lbl->setPosition(rowBg->getContentSize().width / 2, rowBg->getContentSize().height / 2);
+            rowBg->addChild(lbl);
+
+            auto rowBtn = CCMenuItemSpriteExtra::create(rowBg, this, menu_selector(LinkPopup::onSelectLevel));
             rowBtn->setUserData(level);
             rowBtn->setPosition(0.f, startY);
             m_buttonMenu->addChild(rowBtn);

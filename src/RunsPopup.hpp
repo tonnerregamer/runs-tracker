@@ -38,19 +38,18 @@ protected:
         }
 
         auto listSize = CCSize(280.f, 140.f);
-        auto center = CCPoint(win.width / 2, win.height / 2);
         float yOffset = showTotal ? 0.f : 20.f;
 
         auto scrollBg = CCScale9Sprite::create("square02_small.png");
         scrollBg->setContentSize(listSize);
         scrollBg->setOpacity(100);
-        scrollBg->setPosition(center.x, center.y - 10.f + yOffset);
-        this->addChild(scrollBg);
+        scrollBg->setPosition(0.f, -10.f + yOffset);
+        container->addChild(scrollBg);
 
         auto scroll = ScrollLayer::create(listSize);
-        scroll->setPosition(center.x - listSize.width / 2, center.y - listSize.height / 2 - 10.f + yOffset);
+        scroll->setPosition(-listSize.width / 2, -listSize.height / 2 - 10.f + yOffset);
         scroll->setTouchPriority(-501);
-        this->addChild(scroll);
+        container->addChild(scroll);
 
         float totHeight = rns.size() * 25.f;
         if (totHeight < listSize.height) totHeight = listSize.height;
