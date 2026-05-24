@@ -173,7 +173,7 @@ inline void showRunsMenu(GJGameLevel* lvl) {
         if (all[i].start > tgt) tgt = all[i].start;
         float maxEnd = tgt;
         Run bestRun = { -1.0f, -1.0f };
-        while (i < all.size() && all[i].start <= tgt) {
+        while (i < allRuns.size() && all[i].start <= tgt) { // Correction de sécurité : all au lieu de allRuns
             if (all[i].end > maxEnd) {
                 maxEnd = all[i].end;
                 bestRun = all[i];
@@ -189,4 +189,40 @@ inline void showRunsMenu(GJGameLevel* lvl) {
 
     auto popup = RunsPopup::create(best, done, lvl);
     CCDirector::get()->getRunningScene()->addChild(popup, 100);
+}
+
+inline void checkUpdates(GJGameLevel* lvl) {
+    static bool checked = false;
+    if (checked) {
+        showRunsMenu(lvl);
+        return;
+    }
+
+    geode::utils::web::fetch("https://raw.githubusercontent.com/tonnerregamer/runs-tracker/main/version.txt")
+        .then([lvl](std::string const& data) {
+        checked = true;
+        std::string latest = data;
+        latest.erase(std::remove_if(latest.begin(), latest.end(), ::isspace), latest.end());
+
+        std::string current = Mod::get()->getVersion().toString();
+
+        if (latest > current) {
+            geode::createQuickPopup(
+                "Update Available",
+                "A newer version of Runs Tracker is available. Would you like to open the download page?",
+                "No", "Yes",
+                [](auto, bool btn2) {
+                    if (btn2) {
+                        geode::utils::web::openLinkInBrowser("https://github.com/tonnerregamer/runs-tracker/releases");
+                    }
+                }
+            );
+        }
+        else {
+            showRunsMenu(lvl);
+        }
+            })
+        .expect([lvl](std::string const& error) {
+        showRunsMenu(lvl);
+            });
 }

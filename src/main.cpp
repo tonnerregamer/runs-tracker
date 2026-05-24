@@ -60,7 +60,7 @@ class $modify(MyLIL, LevelInfoLayer) {
     }
 
     void onViewRuns(CCObject*) {
-        showRunsMenu(this->m_level);
+        checkUpdates(this->m_level);
     }
 };
 
@@ -86,7 +86,7 @@ class $modify(MyELL, EditLevelLayer) {
     }
 
     void onViewRuns(CCObject*) {
-        showRunsMenu(m_fields->m_level);
+        checkUpdates(m_fields->m_level);
     }
 };
 
